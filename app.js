@@ -338,12 +338,18 @@
 
     // ══════════════ Estado ══════════════
     let isRunning = false, isPicking = false, stopReq = false, phase = '', skipFans = false;
-    let baseFilms = [];            // [[slug, name]] pelis base de la búsqueda actual
-    let baseSlugs = new Set();
-    let watched = new Set();
-    let fanFilms = new Map();      // fan -> [[slug, name]] (su top 4)
-    let fanShared = new Map();     // fan -> cuántas pelis base comparte
-    let fanBases = new Map();      // fan -> Set de pelis base de las que es fan
+    // Cada pestaña tiene su propia búsqueda cargada, así no se pisan (lo único compartido es la caché)
+    const newCtx = () => ({
+        baseFilms: [],        // [[slug, name]] pelis de partida
+        baseSlugs: new Set(),
+        watched: new Set(),   // tus pelis vistas
+        fanFilms: new Map(),  // persona -> [[slug, name]] (su top 4)
+        fanShared: new Map(), // persona -> cuántas pelis de partida comparte
+        fanBases: new Map(),  // persona -> Set de pelis de partida de las que es fan
+        key: null             // qué búsqueda está cargada (para no repetirla)
+    });
+    const R = newCtx(); // 🍿 Recomendaciones
+    const P = newCtx(); // 📺 Elegir una peli ya
     let history = [], historyCurrent = null;
     let gemsPending = [], gemsTotal = 0;
     const favCache = {};           // memoria rápida del top 4 de cada fan (lo persistente está en store 'fav:<usuario>')
@@ -570,13 +576,14 @@
         return { w: ui.affMode.value === 'only' ? 0 : shared, affine: false };
     }
 
-    function computeCounts() {
+    function computeCounts(ctx = R, plain = false) {
         const counts = new Map();
-        fanFilms.forEach((films, u) => {
-            const { w, affine } = fanWeightFor(fanShared.get(u) || 1);
+        ctx.fanFilms.forEach((films, u) => {
+            const shared = ctx.fanShared.get(u) || 1;
+            const { w, affine } = plain ? { w: shared, affine: false } : fanWeightFor(shared);
             if (w <= 0) return;
             for (const [slug, name] of films) {
-                if (baseSlugs.has(slug)) continue;
+                if (ctx.baseSlugs.has(slug)) continue;
                 const e = counts.get(slug) || { slug, name: '', fans: 0, affine: 0, score: 0 };
                 if (!e.name && name) e.name = name;
                 e.fans++; e.score += w;
@@ -596,7 +603,7 @@
     function getResults() {
         const minFans = minFansValue();
         const base = [...computeCounts().values()]
-            .filter(e => e.fans >= minFans && !hidden.has(e.slug) && (ui.watchedCB.checked || !watched.has(e.slug)))
+            .filter(e => e.fans >= minFans && !hidden.has(e.slug) && (ui.watchedCB.checked || !R.watched.has(e.slug)))
             .sort((a, b) => b.score - a.score || b.fans - a.fans);
         gemsPending = []; gemsTotal = base.length;
         if (!ui.gemsCB.checked) return base;
@@ -606,9 +613,9 @@
         return ready.map(e => Object.assign({}, e, { gem: gemScore(e) })).sort((a, b) => b.gem - a.gem || b.score - a.score);
     }
 
-    function affinitySummary() {
+    function affinitySummary(ctx = R) {
         const by = { 2: 0, 3: 0, 4: 0 };
-        fanShared.forEach(n => { if (n >= 2) by[Math.min(n, 4)]++; });
+        ctx.fanShared.forEach(n => { if (n >= 2) by[Math.min(n, 4)]++; });
         return t('affSummary', by[2], by[3], by[4]);
     }
 
@@ -860,6 +867,7 @@
     // Todo viene preconfigurado; lo único a elegir es de qué pelis partir (buscador) y qué tipo de peli querés.
     const AVAIL_TTL = 3 * 24 * 3600 * 1000;
     const PICK_MAX_FILMS = 10;
+    const PICK_MIN_FANS = 2;       // que la repitan al menos 2 personas
     const PICK_FANS = 100;         // personas por peli (fijo en esta pestaña)
     const PICK_FIRST_AFTER = 40;   // segundos: si la búsqueda no terminó, a los 40s se elige con lo que haya; el resto sigue para "Otra"
     const availCache = loadJSON('lbpr_avail', {});
@@ -1009,7 +1017,7 @@
     }
     function startTV() {
         pickAnim.style.display = 'flex'; tv.style.display = 'block'; pickAnimText.textContent = t('pickPicking');
-        const refresh = () => { tvThumbs = [...computeCounts().values()].sort((a, b) => b.score - a.score).slice(0, 30).map(e => ({ name: e.name || slugName(e.slug), poster: (filmMeta[e.slug] || {}).poster })); };
+        const refresh = () => { tvThumbs = [...computeCounts(P, true).values()].sort((a, b) => b.score - a.score).slice(0, 30).map(e => ({ name: e.name || slugName(e.slug), poster: (filmMeta[e.slug] || {}).poster })); };
         refresh(); clearInterval(tvTimer);
         let n = 0;
         tvTimer = setInterval(() => { tvZap(); if (++n % 10 === 0) refresh(); }, 190);
@@ -1040,7 +1048,7 @@
     async function estimatePick() {
         const seq = ++estimatePickSeq;
         const o = pickOpts();
-        const r = fanFilms.size && dataKey === o.key ? { instant: true } // ya están los datos de esa búsqueda
+        const r = P.fanFilms.size && P.key === o.key ? { instant: true } // ya están los datos de esa búsqueda
             : await estimateFor({ bases: o.films.map(f => f[0]), nBase: 4, perFilm: o.perFilm, noCache: false });
         if (seq === estimatePickSeq) showEstimate(ui.pickBtn, t('pickBtn'), ui.pickEstimate, r);
     }
@@ -1096,10 +1104,10 @@
         pickErr.textContent = '';
         // la misma búsqueda ya está corriendo (ej. tocaste "Otra" antes de que termine): se elige con lo que hay
         if (isRunning) {
-            if (runOpts && runOpts.key === o.key) { if (fanFilms.size) doPick(); } else alert(t('busy'));
+            if (runOpts && runOpts.key === o.key) { if (P.fanFilms.size) doPick(); } else alert(t('busy'));
             return;
         }
-        if (fanFilms.size && dataKey === o.key) { doPick(); return; }
+        if (P.fanFilms.size && P.key === o.key) { doPick(); return; }
         // hay que correr todo el algoritmo con estas pelis
         pickSkip.clear(); pickOut.innerHTML = ''; pickSeen.length = 0; pickPos = -1;
         let picked = false;
@@ -1107,11 +1115,11 @@
         startTV();
         // a los 40s, si todavía no terminó, se muestra una con lo que haya (si ya se leyeron al menos 10 tops)
         const firstTimer = setInterval(() => {
-            if (!picked && isRunning && Date.now() - started >= PICK_FIRST_AFTER * 1000 && fanFilms.size >= 10) { picked = true; doPick(); }
+            if (!picked && isRunning && Date.now() - started >= PICK_FIRST_AFTER * 1000 && P.fanFilms.size >= 10) { picked = true; doPick(); }
         }, 1000);
         const ok = await run(o);
         clearInterval(firstTimer);
-        if (ok && !picked && fanFilms.size) { picked = true; await doPick(); }
+        if (ok && !picked && P.fanFilms.size) { picked = true; await doPick(); }
         if (!ok) { stopTV(); pickAnim.style.display = 'none'; pickErr.textContent = statusEl.textContent; }
         else if (!isPicking) pickAnim.style.display = 'none';
     }
@@ -1122,8 +1130,8 @@
         startTV();
         try {
             // candidatas: las del ranking, sin vistas, ocultas ni las que ya salieron
-            let cands = [...computeCounts().values()]
-                .filter(e => e.fans >= minFansValue() && !hidden.has(e.slug) && !watched.has(e.slug) && !pickSkip.has(e.slug))
+            let cands = [...computeCounts(P, true).values()]
+                .filter(e => e.fans >= PICK_MIN_FANS && !hidden.has(e.slug) && !P.watched.has(e.slug) && !pickSkip.has(e.slug))
                 .sort((a, b) => b.score - a.score)
                 .slice(0, pickKind === 'any' && !shortOpt.input.checked ? 40 : 80);
             await ensureMeta(cands, shortOpt.input.checked);
@@ -1331,14 +1339,14 @@
         });
     }
 
-    async function saveHistory(src, partial, who) {
-        if (!fanFilms.size) return;
+    async function saveHistory(ctx, src, partial, who) {
+        if (!ctx.fanFilms.size) return;
         const id = String(Date.now());
         await store.set('hist:' + id, {
-            favs: baseFilms, fanFilms: [...fanFilms], fanWeight: [...fanShared],
-            fanBases: [...fanBases].map(([u, b]) => [u, [...b]]), watched: [...watched]
+            favs: ctx.baseFilms, fanFilms: [...ctx.fanFilms], fanWeight: [...ctx.fanShared],
+            fanBases: [...ctx.fanBases].map(([u, b]) => [u, [...b]]), watched: [...ctx.watched]
         });
-        history = [{ id, t: Date.now(), source: src, who, partial, baseNames: baseFilms.map(f => f[1] || slugName(f[0])), fans: fanFilms.size, films: computeCounts().size }, ...history];
+        history = [{ id, t: Date.now(), source: src, who, partial, baseNames: ctx.baseFilms.map(f => f[1] || slugName(f[0])), fans: ctx.fanFilms.size, films: computeCounts(ctx, true).size }, ...history];
         for (const old of history.slice(HISTORY_MAX)) await store.remove('hist:' + old.id);
         history = history.slice(0, HISTORY_MAX);
         await store.set('history', history);
@@ -1350,12 +1358,12 @@
         if (isRunning) { alert(t('busy')); return; }
         const data = await store.get('hist:' + id);
         if (!data) { if (!quiet) alert(t('histMissing')); return; }
-        baseFilms = data.favs; baseSlugs = new Set(baseFilms.map(f => f[0]));
-        fanFilms = new Map(data.fanFilms); fanShared = new Map(data.fanWeight); watched = new Set(data.watched);
-        fanBases = new Map((data.fanBases || []).map(([u, b]) => [u, new Set(b)]));
+        R.baseFilms = data.favs; R.baseSlugs = new Set(R.baseFilms.map(f => f[0]));
+        R.fanFilms = new Map(data.fanFilms); R.fanShared = new Map(data.fanWeight); R.watched = new Set(data.watched);
+        R.fanBases = new Map((data.fanBases || []).map(([u, b]) => [u, new Set(b)]));
         expanded.clear();
         historyCurrent = id; localStorage.setItem('lbpr_last_hist', id);
-        dataKey = null;
+        R.key = null;
         const it = history.find(x => x.id === id);
         if (!quiet) { status(t('stHistory', it ? fmtDate(it.t) : '')); histPanel.style.display = 'none'; resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
         renderHistory(); renderResults();
@@ -1363,16 +1371,16 @@
 
     // ══════════════ "¿Por qué?": explicación gráfica ══════════════
     const WHY_COLORS = ['#00e054', '#40bcf4', '#ff8000', '#a78bfa', '#f43f5e', '#fbbf24', '#22d3ee', '#f472b6'];
-    const baseName = slug => { const f = baseFilms.find(x => x[0] === slug); return (f && f[1]) || slugName(slug); };
+    const baseName = slug => { const f = R.baseFilms.find(x => x[0] === slug); return (f && f[1]) || slugName(slug); };
     // De qué pelis base es fan cada persona (en búsquedas viejas no se guardaba: se deduce de su top 4)
-    const basesOf = (u, films) => fanBases.get(u) || new Set(films.filter(([slug]) => baseSlugs.has(slug)).map(([slug]) => slug));
+    const basesOf = (u, films) => R.fanBases.get(u) || new Set(films.filter(([slug]) => R.baseSlugs.has(slug)).map(([slug]) => slug));
 
     function buildWhy(e) {
         const box = h('div', { style: 'margin-top:10px;padding:14px;background:rgba(24,24,27,.9);border:1px solid var(--line2);border-radius:10px;display:flex;flex-direction:column;gap:14px;' });
         const voters = [];
-        fanFilms.forEach((films, u) => {
+        R.fanFilms.forEach((films, u) => {
             if (!films.some(([slug]) => slug === e.slug)) return;
-            const shared = fanShared.get(u) || 1;
+            const shared = R.fanShared.get(u) || 1;
             const { w, affine } = fanWeightFor(shared);
             if (w > 0) voters.push({ u, shared, w, affine, bases: basesOf(u, films) });
         });
@@ -1451,7 +1459,7 @@
     function renderResults() {
         const items = getResults();
         const gemsOn = ui.gemsCB.checked;
-        ui.affInfo.textContent = fanShared.size ? affinitySummary() : t('affPending');
+        ui.affInfo.textContent = R.fanShared.size ? affinitySummary() : t('affPending');
         ui.count.textContent = t('count', items.length);
         ui.list.innerHTML = '';
         if (gemsOn && gemsPending.length) {
@@ -1459,7 +1467,7 @@
             wantMeta([...items.slice(0, 40).map(e => e.slug), ...gemsPending.slice(0, isRunning ? 100 : Infinity).map(e => e.slug)]);
             ui.list.append(h('div.note', { text: t('gemsPending', gemsTotal - gemsPending.length, gemsTotal) }));
         }
-        if (!items.length) { ui.list.append(h('div.empty', { text: t(fanFilms.size ? 'emptyNone' : 'emptyStart') })); return; }
+        if (!items.length) { ui.list.append(h('div.empty', { text: t(R.fanFilms.size ? 'emptyNone' : 'emptyStart') })); return; }
         const shown = items.slice(0, 150);
         // portada y promedio: durante la búsqueda solo las primeras 40, al terminar todas las visibles
         if (!(gemsOn && gemsPending.length)) wantMeta(shown.slice(0, isRunning ? 40 : 150).map(e => e.slug));
@@ -1482,7 +1490,7 @@
                 chips.append(chip(t('gemScore', e.gem), '#a78bfa', 'rgba(167,139,250,.12)', t('rawScore', e.score)));
                 if (fm && fm.ratingCount) chips.append(chip(t('votes', fmtNum(fm.ratingCount)), '#a1a1aa', 'rgba(161,161,170,.1)'));
             } else chips.append(chip(t('score', e.score), '#00e054', 'rgba(0,224,84,.1)'));
-            if (watched.has(e.slug)) chips.append(chip(t('seen'), '#a1a1aa', 'rgba(161,161,170,.1)'));
+            if (R.watched.has(e.slug)) chips.append(chip(t('seen'), '#a1a1aa', 'rgba(161,161,170,.1)'));
 
             const title = (e.name || slugName(e.slug)) + (fm && fm.year && !/\(\d{4}\)$/.test(e.name || '') ? ` (${fm.year})` : '');
             const info = h('div', { style: 'flex:1;min-width:0;display:flex;flex-direction:column;gap:6px' }, [
@@ -1507,7 +1515,7 @@
     function exportTxt() {
         const items = getResults();
         if (!items.length) return;
-        let txt = `Letterboxd Pelis Recommendation – ${t('exHeader')}\n${t('exBase')}: ${baseFilms.map(f => f[1] || slugName(f[0])).join(', ')}\n${t('exDate')}: ${new Date().toLocaleString(t('dateLocale'))}\n${'='.repeat(40)}\n\n`;
+        let txt = `Letterboxd Pelis Recommendation – ${t('exHeader')}\n${t('exBase')}: ${R.baseFilms.map(f => f[1] || slugName(f[0])).join(', ')}\n${t('exDate')}: ${new Date().toLocaleString(t('dateLocale'))}\n${'='.repeat(40)}\n\n`;
         items.forEach((e, i) => { txt += t('exLine', i + 1, e.name || slugName(e.slug), e.fans, e.score, e.gem, `https://letterboxd.com/film/${e.slug}/`) + '\n'; });
         const a = h('a', { href: URL.createObjectURL(new Blob([txt], { type: 'text/plain' })), download: `recomendaciones-${Date.now()}.txt` });
         a.click();
@@ -1521,7 +1529,6 @@
         } else stopReq = true;
     }
 
-    let dataKey = null; // qué búsqueda está cargada ahora (para no repetirla desde "Elegir una peli ya")
     let runOpts = null; // opciones de la búsqueda que está corriendo
     async function run(opts) {
         if (isRunning) return false;
@@ -1541,10 +1548,11 @@
         else searchSlot.append(ui.stopBtn, pop, statusEl);
         slotBtn.style.display = 'none'; ui.stopBtn.style.display = 'block'; ui.stopBtn.textContent = t('stop');
         startPop();
-        dataKey = null;
+        const ctx = opts.slot === 'pick' ? P : R; // cada pestaña llena su propio contexto
+        ctx.key = null;
         let ok = false;
-        fanFilms = new Map(); fanShared = new Map(); fanBases = new Map(); expanded.clear();
-        historyCurrent = null; renderHistory(); renderResults();
+        ctx.fanFilms = new Map(); ctx.fanShared = new Map(); ctx.fanBases = new Map();
+        if (ctx === R) { expanded.clear(); historyCurrent = null; renderHistory(); renderResults(); }
         const noCache = !!opts.noCache;
         if (noCache) log(t('lgNoCache'), 'var(--yellow)');
         let src = opts.src;
@@ -1574,13 +1582,13 @@
                 if (!favs.length) throw new Error(who === me ? t('errNoFavs') : t('errNoFavsOf', who));
             }
             if (stopReq) throw new Error(t('errStopped'));
-            baseFilms = favs; baseSlugs = new Set(favs.map(f => f[0]));
+            ctx.baseFilms = favs; ctx.baseSlugs = new Set(favs.map(f => f[0]));
             log(t('lgBase', favs.length, favs.map(f => f[1] || slugName(f[0])).join(', ')), 'var(--blue)');
 
             // 2) Tus vistas
             setPop('watched'); phase = 'watched';
-            watched = me ? await fetchWatched(me, p => { status(t('stWatched', p)); log(t('lgPages', t('wWatched'), p)); }, noCache) : new Set();
-            log(t('lgWatched', watched.size), 'var(--blue)');
+            ctx.watched = me ? await fetchWatched(me, p => { status(t('stWatched', p)); log(t('lgPages', t('wWatched'), p)); }, noCache) : new Set();
+            log(t('lgWatched', ctx.watched.size), 'var(--blue)');
             if (stopReq) throw new Error(t('errStopped'));
 
             // 3) Fans de cada peli base, varias pelis a la vez
@@ -1625,9 +1633,9 @@
                             store.set(cacheKey, { users: [...users], complete, lastPage, t: resume ? cf.t : Date.now() });
                     }
                     users.forEach(u => {
-                        fanShared.set(u, (fanShared.get(u) || 0) + 1);
-                        if (!fanBases.has(u)) fanBases.set(u, new Set());
-                        fanBases.get(u).add(slug);
+                        ctx.fanShared.set(u, (ctx.fanShared.get(u) || 0) + 1);
+                        if (!ctx.fanBases.has(u)) ctx.fanBases.set(u, new Set());
+                        ctx.fanBases.get(u).add(slug);
                     });
                     filmsDone++;
                     setPop('fans', filmsDone / favs.length);
@@ -1637,13 +1645,13 @@
                 }
             }
             await Promise.all(Array.from({ length: threads() }, (_, i) => fanWorker(i)));
-            log(t('lgFansTotal', fanShared.size, fromCache), 'var(--blue)');
-            if (!fanShared.size) throw new Error(t('errNoFans'));
+            log(t('lgFansTotal', ctx.fanShared.size, fromCache), 'var(--blue)');
+            if (!ctx.fanShared.size) throw new Error(t('errNoFans'));
 
             // 4) El top 4 de cada fan, en paralelo
             phase = 'favs'; ui.stopBtn.textContent = t('stop');
             setPop('favs', 0);
-            const fans = [...fanShared.keys()];
+            const fans = [...ctx.fanShared.keys()];
             let next = 0, done = 0, failed = 0, cachedN = 0;
             const favsStart = Date.now();
             let fetchedN = 0;
@@ -1653,13 +1661,13 @@
                     const u = fans[next++];
                     const fr = await fetchUserFavorites(u, noCache);
                     if (fr) {
-                        fanFilms.set(u, fr.films);
+                        ctx.fanFilms.set(u, fr.films);
                         // pelis en común reales: las que tiene en su top 4 (pudo aparecer en menos listas de fans
                         // de las que corresponde, porque de cada peli solo se toma una parte de sus fans)
-                        const bs = fanBases.get(u) || new Set();
-                        fr.films.forEach(([slug]) => { if (baseSlugs.has(slug)) bs.add(slug); });
-                        fanBases.set(u, bs);
-                        if (bs.size > (fanShared.get(u) || 0)) fanShared.set(u, bs.size);
+                        const bs = ctx.fanBases.get(u) || new Set();
+                        fr.films.forEach(([slug]) => { if (ctx.baseSlugs.has(slug)) bs.add(slug); });
+                        ctx.fanBases.set(u, bs);
+                        if (bs.size > (ctx.fanShared.get(u) || 0)) ctx.fanShared.set(u, bs.size);
                     } else failed++;
                     done++;
                     if (fr && fr.cached) cachedN++; else fetchedN++;
@@ -1670,7 +1678,7 @@
                         const rate = done / Math.max(1, (Date.now() - favsStart) / 1000);
                         log(t('lgFavsProgress', done, fans.length, rate.toFixed(1), t('eta', (fans.length - done) / rate), cachedN));
                     }
-                    if (done % 5 === 0) scheduleRender();
+                    if (done % 5 === 0 && ctx === R) scheduleRender();
                     if (!(fr && fr.cached)) await randomDelay(0.8, 1.6);
                 }
             }
@@ -1679,13 +1687,13 @@
                 const rate = fetchedN / ((Date.now() - favsStart) / 1000) / threads();
                 localStorage.setItem('lbpr_rate', String(Math.min(2, Math.max(0.1, measuredRate() * 0.6 + rate * 0.4)).toFixed(3)));
             }
-            log(t('lgDone', done, failed, computeCounts().size), 'var(--green)');
-            log(`🎯 ${affinitySummary()}`, 'var(--blue)');
-            status(stopReq ? t('stPartial') : t('stDone', getResults().length));
+            log(t('lgDone', done, failed, computeCounts(ctx, true).size), 'var(--green)');
+            log(`🎯 ${affinitySummary(ctx)}`, 'var(--blue)');
+            status(stopReq ? t('stPartial') : t('stDone', ctx === R ? getResults().length : computeCounts(ctx, true).size));
             stopPop(stopReq ? 'stopped' : 'done');
-            await saveHistory(src, stopReq, who !== me ? who : null);
-            ok = !stopReq || fanFilms.size > 0;
-            if (ok) dataKey = opts.key;
+            await saveHistory(ctx, src, stopReq, who !== me ? who : null);
+            ok = !stopReq || ctx.fanFilms.size > 0;
+            if (ok) ctx.key = opts.key;
         } catch (err) {
             status('❌ ' + err.message);
             log(err.message, 'var(--red)');

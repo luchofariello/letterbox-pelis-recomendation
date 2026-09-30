@@ -8,7 +8,7 @@ Extensión de Chrome que te recomienda películas a partir de lo que ya amás: b
 
 ![Recomendaciones](docs/screenshots/recommendations.png)
 
-*[English version below](#-english)*
+🇬🇧 *[Read this in English](README.en.md)*
 
 ---
 
@@ -164,23 +164,3 @@ Los textos de la interfaz están en el objeto `I18N` al principio de `app.js` (e
 
 - Creado por [**@luchofariello**](https://github.com/luchofariello).
 - Las funciones de lectura de Letterboxd se basan originalmente en el script *Letterboxd MassFollow* de [@Miabeyefendi](https://letterboxd.com/miabeyefendi/).
-
----
-
-## 🇬🇧 English
-
-**Letterboxd Pelis Recommendation** is a Chrome extension that recommends films based on what you already love. It finds people who have your favorite films in their Letterboxd top 4, looks at what else they love, and ranks the films that repeat the most among them — skipping the ones you've already seen.
-
-**Features**
-- **🍿 Recommendations** from your 4 favorites, your top-rated films (4½–5★), or up to 5 films you pick with the search box (no Letterboxd account needed).
-- Instant tweaks: minimum number of people, **💎 hidden gems** (downweights films everyone loves), include seen films, **🎯 taste twins** (people who share several of your films count more).
-- **💡 Why?** diagram for every recommendation, search history, time estimate, export to text.
-- **📺 Pick a film now**: pick a few films you love, choose *Surprise me / A hidden gem / A classic*, optionally *available to stream in your country* and *something short* (≤ 90 min), and get one film — the first one within 40 seconds, with ◀ Previous / 🎲 Another.
-- Spanish and English UI.
-
-**Install**
-1. `git clone https://github.com/luchofariello/letterbox-pelis-recomendation.git` (or download the ZIP).
-2. Go to `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and select the project folder.
-3. Allow access to letterboxd.com, pin the extension and click its icon.
-
-Requires Chrome 116+. Everything runs locally in your browser; it only reads public Letterboxd pages and stores the cache on your computer. Not affiliated with Letterboxd — since there's no public API, it reads Letterboxd's public HTML, so site changes may break things until the extension is updated. Please use it moderately and respect Letterboxd's terms of use.
