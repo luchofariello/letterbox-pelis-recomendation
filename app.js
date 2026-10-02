@@ -26,8 +26,9 @@
             introSteps: [
                 ['⭐ Tus joyas', 'Partimos de tus 4 favoritas o de las pelis que puntuaste con 4½ y 5 estrellas.'],
                 ['🕵️ Tus almas gemelas', 'Buscamos a sus fans: la gente que tiene esas pelis en su top 4.'],
-                ['🎞️ Espiamos sus tops', 'Juntamos las 4 favoritas de cada fan (con todo respeto).'],
-                ['🏆 Tu ranking', 'Las que más se repiten y todavía no viste. Si un fan comparte varias de tus pelis, su voto pesa más.']
+                ['🎞️ Espiamos sus tops', 'Juntamos las 4 favoritas de cada fan (con todo respeto). Opcional: también hasta 15 de sus 5★ (valen medio voto) y 15 de sus 4½★ (un cuarto).'],
+                ['🧩 Temáticas parecidas', 'Miramos las temáticas de tus pelis (la sección Genres de Letterboxd). Cuantas más comparta una candidata, más puntos suma.'],
+                ['🏆 Tu ranking', 'Las que más se repiten y todavía no viste. Si un fan comparte varias de tus pelis, su voto pesa más. En "Elegir una peli ya" también cuentan las temáticas.']
             ],
             introNotes: '🔒 Todo corre en tu navegador: solo leemos páginas públicas de Letterboxd y los resultados se guardan en tu compu.<br>⏱ La primera búsqueda tarda unos minutos; las siguientes vuelan porque recordamos lo que ya revisamos.',
             introGo: '🎬 ¡Vamos!',
@@ -48,6 +49,7 @@
             threadsLabel: 'Velocidad',
             threadsHint: 'Más rápido = más riesgo de que Letterboxd te frene un rato.',
             speeds: ['🐢 Tranqui', '🚶 Normal', '🏃 Rápido', '🚀 A fondo'],
+            optFives: '⭐ Sumar también sus 5★ y 4½★', optFivesDesc: 'Además de su top 4, cuenta hasta 15 pelis con 5★ (valen la mitad de voto) y 15 con 4½★ (un cuarto). Tarda más: dos consultas extra por persona.',
             noCache: '🔄 No usar caché',
             noCacheDesc: 'Vuelve a consultar todo (fans, sus favoritas y tus vistas). Más lento, con datos frescos.',
             start: '🔎 Buscar recomendaciones', stop: '⏹ Detener', stopAll: '⏹ Detener del todo',
@@ -66,6 +68,19 @@
             export: 'Exportar',
             adjust: 'Ajustar resultados', adjustHint: 'se aplica al instante, sin volver a buscar',
             optMinFans: '👥 Que la recomienden al menos…', optMinFansDesc: n => `${n} ${pl(n, 'persona', 'personas')} con tu gusto`,
+            optThemes: '🧩 Sumar por temáticas parecidas', optThemesDesc: 'Suma puntos a las pelis que comparten temáticas (la sección Genres de Letterboxd) con las tuyas y agrega, al final, las mejor puntuadas de tus temáticas principales.', themeMatch: (n, w) => `🧩 ${[n ? `${n} ${pl(n, 'temática', 'temáticas')}` : '', w ? `${w} ${pl(w, 'subtemática', 'subtemáticas')}` : ''].filter(Boolean).join(' + ')} en común`,
+            kindtheme: 'Temática', 'kindmini-theme': 'Mini-tema', kindnanogenre: 'Nanogénero', kindword: 'Subtemática', whyMatchTitle: '🧩 En común con tus pelis',
+            whyThemes: (m, n, w) => `${m} (${[n ? `${n} ${pl(n, 'temática', 'temáticas')}` : '', w ? `${w} ${pl(w, 'subtemática', 'subtemáticas')}` : ''].filter(Boolean).join(' + ')} en común)`,
+            stThemes: '🧩 Buscando las mejores pelis de tus temáticas…', lgThemeList: (n, c) => `🧩 Temática ${n}: ${c} pelis`, themeOnly: '🧩 por temática', themeOnlyTitle: 'No la recomienda ningún fan: sale de las mejor puntuadas de las temáticas de tus pelis.',
+            resTabFans: n => `👥 Por fans (${n})`, resTabThemes: n => `🧩 Solo por temática (${n})`,
+            emptyThemes: 'No hay pelis que lleguen solo por temática. Prende "🧩 Sumar por temáticas parecidas" o revisa el log: Letterboxd pudo bloquear esas listas.',
+            themesTabHint: 'Ningún fan las tiene en sus favoritas: salen de las mejor puntuadas de las temáticas de tus pelis, ordenadas por cuántas temáticas comparten con las tuyas.',
+            whyRowtop: n => `${n} ${pl(n, 'persona la tiene', 'personas la tienen')} en su top 4`,
+            whyRowfive: n => `${n} ${pl(n, 'persona la puntuó', 'personas la puntuaron')} con 5★ (sin tenerla en su top 4)`,
+            whyRowhalf: n => `${n} ${pl(n, 'persona la puntuó', 'personas la puntuaron')} con 4½★ (sin tenerla en su top 4)`,
+            whyShared: (n, s) => `y ${pl(n, 'comparte', 'comparten')} ${s} de tus pelis con vos`,
+            whyThemeLists: n => `🧩 Sale entre las mejores de ${n} ${pl(n, 'temática', 'temáticas')} de tus pelis`,
+            minFansAuto: n => ` · valor sugerido: ${n}`,
             optGems: '💎 Priorizar joyitas', optGemsDesc: 'Menos clásicos obvios, más descubrimientos.',
             optWatched: '👁 Incluir las que ya vi', optWatchedDesc: 'Aparecen marcadas como vistas.',
             optAff: '🎯 Más peso a tus gemelos de gusto', optAffDesc: 'Si alguien comparte 2 o más de tus pelis, su voto vale más.',
@@ -162,8 +177,9 @@
             introSteps: [
                 ['⭐ Your gems', 'We start from your 4 favorites or the films you rated 4½ and 5 stars.'],
                 ['🕵️ Your soulmates', 'We find their fans: people who have those films in their top 4.'],
-                ['🎞️ We peek at their tops', "We gather every fan's 4 favorites (respectfully)."],
-                ['🏆 Your ranking', "The most repeated ones you haven't seen yet. Fans who share several of your films get a bigger vote."]
+                ['🎞️ We peek at their tops', "We gather every fan's 4 favorites (respectfully). Optional: also up to 15 of their 5★ (half a vote) and 15 of their 4½★ (a quarter)."],
+                ['🧩 Similar themes', "We look at your films' themes (Letterboxd's Genres section). The more a candidate shares, the more points it gets."],
+                ['🏆 Your ranking', "The most repeated ones you haven't seen yet. Fans who share several of your films get a bigger vote. \"Pick a film now\" also counts themes."]
             ],
             introNotes: '🔒 Everything runs in your browser: we only read public Letterboxd pages and results are stored on your computer.<br>⏱ The first search takes a few minutes; the next ones fly because we remember what we already checked.',
             introGo: "🎬 Let's go!",
@@ -184,6 +200,7 @@
             threadsLabel: 'Speed',
             threadsHint: 'Faster = a higher chance Letterboxd slows you down for a while.',
             speeds: ['🐢 Chill', '🚶 Normal', '🏃 Fast', '🚀 Full throttle'],
+            optFives: '⭐ Also count their 5★ and 4½★ films', optFivesDesc: "On top of their top 4, counts up to 15 films rated 5★ (half a vote) and 15 rated 4½★ (a quarter). Slower: two extra requests per person.",
             noCache: "🔄 Don't use cache",
             noCacheDesc: 'Fetches everything again (fans, their favorites and your watched films). Slower, but fresh.',
             start: '🔎 Find recommendations', stop: '⏹ Stop', stopAll: '⏹ Stop completely',
@@ -202,6 +219,19 @@
             export: 'Export',
             adjust: 'Tune results', adjustHint: 'applies instantly, no new search',
             optMinFans: '👥 Recommended by at least…', optMinFansDesc: n => `${n} ${pl(n, 'person', 'people')} with your taste`,
+            optThemes: '🧩 Boost similar themes', optThemesDesc: "Adds points to films sharing themes (Letterboxd's Genres section) with yours and adds, at the end, the top rated films of your main themes.", themeMatch: (n, w) => `🧩 ${[n ? `${n} ${pl(n, 'theme', 'themes')}` : '', w ? `${w} ${pl(w, 'subtheme', 'subthemes')}` : ''].filter(Boolean).join(' + ')} shared`,
+            kindtheme: 'Theme', 'kindmini-theme': 'Mini-theme', kindnanogenre: 'Nanogenre', kindword: 'Subtheme', whyMatchTitle: '🧩 In common with your films',
+            whyThemes: (m, n, w) => `${m} (${[n ? `${n} ${pl(n, 'theme', 'themes')}` : '', w ? `${w} ${pl(w, 'subtheme', 'subthemes')}` : ''].filter(Boolean).join(' + ')} shared)`,
+            stThemes: '🧩 Finding the best films of your themes…', lgThemeList: (n, c) => `🧩 Theme ${n}: ${c} films`, themeOnly: '🧩 by theme', themeOnlyTitle: 'No fan recommends it: it comes from the top rated films of your films\' themes.',
+            resTabFans: n => `👥 By fans (${n})`, resTabThemes: n => `🧩 Theme only (${n})`,
+            emptyThemes: 'No films reached only by theme. Turn on "🧩 Boost similar themes" or check the log: Letterboxd may have blocked those lists.',
+            themesTabHint: "No fan has them among their favorites: they come from the top rated films of your films' themes, ordered by how many themes they share with yours.",
+            whyRowtop: n => `${n} ${pl(n, 'person has it', 'people have it')} in their top 4`,
+            whyRowfive: n => `${n} ${pl(n, 'person rated it', 'people rated it')} 5★ (without it in their top 4)`,
+            whyRowhalf: n => `${n} ${pl(n, 'person rated it', 'people rated it')} 4½★ (without it in their top 4)`,
+            whyShared: (n, s) => `and ${pl(n, 'shares', 'share')} ${s} of your films with you`,
+            whyThemeLists: n => `🧩 Among the best of ${n} ${pl(n, 'theme', 'themes')} of your films`,
+            minFansAuto: n => ` · suggested value: ${n}`,
             optGems: '💎 Prioritize hidden gems', optGemsDesc: 'Fewer obvious classics, more discoveries.',
             optWatched: "👁 Include films I've seen", optWatchedDesc: 'They show up tagged as seen.',
             optAff: '🎯 More weight to your taste twins', optAffDesc: 'If someone shares 2+ of your films, their vote counts more.',
@@ -335,6 +365,8 @@
     const WATCHED_TTL = 12 * 3600 * 1000;        // tus películas vistas: 12 horas
     const FILM_META_TTL = 14 * 24 * 3600 * 1000; // portada, promedio y votos de cada película: 14 días
     const HISTORY_MAX = 10;
+    const FIVES_MAX = 15;      // de cada fan, cuántas de sus pelis con 5★ y con 4½★ se suman
+    const FIVE_WEIGHT = 0.5, HALF_WEIGHT = 0.25;  // una 5★ vale medio voto y una 4½★ un cuarto; una de su top 4 vale 1
 
     // ══════════════ Estado ══════════════
     let isRunning = false, isPicking = false, stopReq = false, phase = '', skipFans = false;
@@ -344,6 +376,9 @@
         baseSlugs: new Set(),
         watched: new Set(),   // tus pelis vistas
         fanFilms: new Map(),  // persona -> [[slug, name]] (su top 4)
+        fanFives: new Map(),  // persona -> [[slug, name]] (algunas de sus 5★, pesan menos)
+        fanHalves: new Map(), // persona -> [[slug, name]] (algunas de sus 4½★, pesan menos todavía)
+        themeFilms: new Map(),// slug -> { name, n }: pelis de las mejores de cada temática de tus pelis (n = en cuántas listas salió)
         fanShared: new Map(), // persona -> cuántas pelis de partida comparte
         fanBases: new Map(),  // persona -> Set de pelis de partida de las que es fan
         key: null             // qué búsqueda está cargada (para no repetirla)
@@ -365,7 +400,13 @@
             while (Date.now() < rateLimitUntil) await sleep(1000);
             inFlight++;
             let res;
-            try { res = await fetch(url, { credentials: 'include' }); } finally { inFlight--; }
+            try { res = await fetch(url, { credentials: 'include' }); }
+            catch (e) {
+                // error de red (sin internet, conexión cortada): reintenta con pausa creciente
+                if (attempt === 2) return new Response('', { status: 599 });
+                await sleep(1500 * (attempt + 1));
+                continue;
+            } finally { inFlight--; }
             if (res.status === 403 || res.status >= 500) {
                 // se avisan los primeros 3 y después 1 de cada 20, para no inundar el log
                 blockedCount++;
@@ -379,7 +420,18 @@
     const parseHTML = async res => new DOMParser().parseFromString(await res.text(), 'text/html');
 
     // Una página de una lista de usuarios de Letterboxd (ej. /film/x/fans/page/2/) → { users: [usuario], hasNext }
+    // La conexión puede cortarse a mitad de la descarga ("Failed to fetch" al leer el cuerpo): se reintenta la página
+    // en vez de darla por vacía, porque una página vacía hace creer que la lista terminó.
     async function fetchUsersPage(url, page) {
+        let r;
+        for (let attempt = 0; attempt < 3; attempt++) {
+            r = await fetchUsersPageOnce(url, page);
+            if (!r.failed) break;
+            await sleep(2000 * (attempt + 1));
+        }
+        return r;
+    }
+    async function fetchUsersPageOnce(url, page) {
         const fullUrl = page > 1 ? `${url}page/${page}/` : url;
         try {
             const res = await lbFetch(fullUrl);
@@ -404,7 +456,7 @@
                 if (pm && parseInt(pm[1]) > page) hasNext = true;
             });
             return { users: [...users], hasNext };
-        } catch (e) { console.error(e); return { users: [], hasNext: false }; }
+        } catch (e) { console.error(e); return { users: [], hasNext: false, failed: true }; }
     }
 
     // Junta películas de un bloque de HTML de Letterboxd (soporta el markup viejo y el nuevo de posters) → Map slug -> nombre
@@ -441,19 +493,39 @@
     }
 
     // Top 4 de un usuario → { films: [[slug, name]], cached } | null si falló la consulta
-    async function fetchUserFavorites(username, force) {
+    // Con withFives también trae sus primeras FIVES_MAX pelis con 5★ (fives) y con 4½★ (halves). Lo que ya está en caché no se vuelve a pedir.
+    async function fetchUserFavorites(username, force, withFives) {
+        let c = null;
         if (!force) {
-            let c = favCache[username];
+            c = favCache[username];
             if (!c) { c = await store.get('fav:' + username); if (c) favCache[username] = c; }
-            if (c && Date.now() - c.t < FAV_TTL) return { films: c.films, cached: true };
+            if (c && Date.now() - c.t < FAV_TTL) {
+                if (!withFives || (c.fives && c.halves)) return { films: c.films, fives: c.fives || [], halves: c.halves || [], cached: true };
+            } else c = null;
         }
-        const res = await lbFetch(`https://letterboxd.com/${username}/`);
-        if (!res.ok) return null;
-        const root = favoritesRoot(await parseHTML(res));
-        const films = root ? [...extractFilms(root)].slice(0, 4) : [];
-        favCache[username] = { films, t: Date.now() };
+        let films = c ? c.films : null;
+        if (!films) {
+            const res = await lbFetch(`https://letterboxd.com/${username}/`);
+            if (!res.ok) return null;
+            const root = favoritesRoot(await parseHTML(res));
+            films = root ? [...extractFilms(root)].slice(0, 4) : [];
+        }
+        const rated = async r => {
+            const res = await lbFetch(`https://letterboxd.com/${username}/films/rated/${r}/`);
+            if (!res.ok) return undefined; // falló: no se guarda como "ya consultado"
+            const doc = await parseHTML(res);
+            return [...extractFilms(doc.querySelector('#content') || doc)].slice(0, FIVES_MAX);
+        };
+        let fives = c && c.fives, halves = c && c.halves;
+        if (withFives) {
+            if (!fives) fives = await rated('5');
+            if (!halves) halves = await rated('4.5');
+        }
+        favCache[username] = { films, t: c ? c.t : Date.now() };
+        if (fives) favCache[username].fives = fives;
+        if (halves) favCache[username].halves = halves;
         store.set('fav:' + username, favCache[username]);
-        return { films, cached: false };
+        return { films, fives: fives || [], halves: halves || [], cached: false };
     }
 
     // Recorre una grilla de posters paginada (ej. "usuario/films/") → Map slug -> nombre
@@ -520,6 +592,12 @@
                 if (Array.isArray(j.genre)) meta.genres = j.genre;
             } catch (e) {}
         }
+        // temáticas de la sección Genres (theme, mini-theme y nanogenre), como slugs
+        meta.themes = [...new Set([...doc.querySelectorAll('a[href^="/films/theme/"], a[href^="/films/mini-theme/"], a[href^="/films/nanogenre/"]')]
+            .map(a => a.getAttribute('href').split('/')[3]).filter(Boolean))];
+        // con el tipo, para poder abrir la lista de pelis de cada temática: "theme/crude-humor-and-satire"
+        meta.themePaths = [...new Set([...doc.querySelectorAll('a[href^="/films/theme/"], a[href^="/films/mini-theme/"], a[href^="/films/nanogenre/"]')]
+            .map(a => a.getAttribute('href').split('/').slice(2, 4).join('/')).filter(p => p.includes('/') && !p.endsWith('/')))];
         if (meta.rating == null) {
             const tw = doc.querySelector('meta[name="twitter:data2"]');
             const m = tw && (tw.getAttribute('content') || '').match(/([\d.]+)\s*out of 5/);
@@ -536,9 +614,13 @@
     let metaUnsaved = 0, renderTimer = null, metaDone = 0;
     const scheduleRender = () => { if (!renderTimer) renderTimer = setTimeout(() => { renderTimer = null; renderResults(); }, 400); };
     const metaFresh = slug => { const m = filmMeta[slug]; return !!m && Date.now() - m.t < FILM_META_TTL; };
+    // los datos viejos (sin temáticas) se vuelven a pedir una vez
+    const needsMeta = slug => !metaFresh(slug) || ((filmMeta[slug].themes === undefined || filmMeta[slug].themePaths === undefined) && !filmMeta[slug].failed);
     function wantMeta(slugs) {
         metaQueue.length = 0;
-        for (const slug of slugs) if (!metaFresh(slug) && !metaInFlight.has(slug)) metaQueue.push(slug);
+        // con las temáticas prendidas, primero las pelis de partida (hacen falta para puntuar a las demás)
+        if (ui.themesCB && ui.themesCB.checked) slugs = [...R.baseFilms.map(f => f[0]), ...slugs];
+        for (const slug of new Set(slugs)) if (needsMeta(slug) && !metaInFlight.has(slug)) metaQueue.push(slug);
         pumpMeta();
     }
     function pumpMeta() {
@@ -567,6 +649,48 @@
         return [m ? m[1] : x.replace(/^\/+|\/+$/g, ''), ''];
     });
 
+    // Pelis "de relleno" por temática: las mejor puntuadas de las temáticas más repetidas en tus pelis de partida.
+    // No dependen de los fans; pesan poco (THEME_SRC_WEIGHT por lista en la que salen) y quedan al final del ranking.
+    // Se toman las THEME_SRC_TOP temáticas más repetidas en tus pelis y las THEME_SRC_FILMS mejores de cada una. Cada lista pesa según qué tan
+    // repetida es su temática (1 la más repetida, menos las demás). Solo entran las que salen en al menos THEME_SRC_MIN_LISTS listas.
+    const THEME_SRC_TOP = 15, THEME_SRC_FILMS = 50, THEME_SRC_WEIGHT = 0.5, THEME_SRC_MIN_LISTS = 2;
+    async function fetchThemeList(path) {
+        const key = 'themelist:' + path;
+        const c = await store.get(key);
+        if (c && Date.now() - c.t < FANS_TTL) return c.films.slice(0, THEME_SRC_FILMS);
+        const res = await lbFetch(`https://letterboxd.com/csi/films/films-browser-list/${path}/by/rating/?esiAllowFilters=true`);
+        if (!res.ok) { log(t('lgPage', path, res.status), 'var(--red)'); return []; }
+        const list = [...extractFilms(await parseHTML(res))].slice(0, THEME_SRC_FILMS);
+        if (list.length) store.set(key, { films: list, t: Date.now() });
+        await sleep(600 + Math.random() * 500);
+        return list;
+    }
+    async function gatherThemeFilms(ctx) {
+        const bases = ctx.baseFilms.slice(0, 30).map(f => f[0]);
+        for (const slug of bases) {
+            if (stopReq) return;
+            const m = filmMeta[slug];
+            if (m && m.themePaths && metaFresh(slug) && !m.failed) continue;
+            try { const nm = await fetchFilmMeta(slug); if (nm) filmMeta[slug] = nm; } catch (e) {}
+            await randomDelay(0.3, 0.6);
+        }
+        saveJSON('lbmf_film_meta', filmMeta);
+        const freq = new Map();
+        bases.forEach(slug => ((filmMeta[slug] || {}).themePaths || []).forEach(p => freq.set(p, (freq.get(p) || 0) + 1)));
+        const maxFreq = Math.max(1, ...freq.values());
+        const top = [...freq].sort((a, b) => b[1] - a[1] || (b[0].startsWith('theme/') - a[0].startsWith('theme/'))).slice(0, THEME_SRC_TOP);
+        for (const [path, f] of top) {
+            if (stopReq) return;
+            const films = await fetchThemeList(path);
+            films.forEach(([slug, name]) => {
+                if (ctx.baseSlugs.has(slug)) return;
+                const e = ctx.themeFilms.get(slug) || { name, n: 0, lists: 0 };
+                e.n += f / maxFreq; e.lists++; ctx.themeFilms.set(slug, e);
+            });
+            log(t('lgThemeList', path.split('/')[1], films.length), 'var(--blue)');
+        }
+    }
+
     // ══════════════ Ranking ══════════════
     // Peso del voto de un fan según cuántas pelis base comparte (y la opción de afinidad) → { w (0 = no cuenta), affine }
     function fanWeightFor(shared) {
@@ -582,14 +706,18 @@
             const shared = ctx.fanShared.get(u) || 1;
             const { w, affine } = plain ? { w: shared, affine: false } : fanWeightFor(shared);
             if (w <= 0) return;
-            for (const [slug, name] of films) {
-                if (ctx.baseSlugs.has(slug)) continue;
+            const add = (slug, name, weight) => {
+                if (ctx.baseSlugs.has(slug)) return;
                 const e = counts.get(slug) || { slug, name: '', fans: 0, affine: 0, score: 0 };
                 if (!e.name && name) e.name = name;
-                e.fans++; e.score += w;
+                e.fans++; e.score += weight;
                 if (affine) e.affine++;
                 counts.set(slug, e);
-            }
+            };
+            for (const [slug, name] of films) add(slug, name, w);
+            const seen = new Set(films.map(f => f[0]));
+            for (const [list, k] of [[ctx.fanFives.get(u), FIVE_WEIGHT], [ctx.fanHalves.get(u), HALF_WEIGHT]])
+                for (const [slug, name] of list || []) if (!seen.has(slug)) { seen.add(slug); add(slug, name, w * k); }
         });
         return counts;
     }
@@ -600,10 +728,48 @@
     const hasPopularity = slug => metaFresh(slug) && !filmMeta[slug].failed;
     const gemScore = e => Math.round(e.score / Math.sqrt((filmMeta[e.slug].ratingCount || 0) + GEM_SMOOTHING) * 1000);
 
+    // Temáticas de tus pelis de partida. Multiplicador del puntaje según cuántas comparte una candidata:
+    // hasta 4 suma 0,2 por temática (1→1,2 · 2→1,4 · 3→1,6 · 4→1,8) y desde ahí 0,4: 5→2,2 · 6→2,6 · 7→3…
+    const themeMult = n => n <= 0 ? 1 : n <= 4 ? 1 + 0.2 * n : 1.8 + 0.4 * (n - 4);
+    // Palabras clave de un mini-theme ("robbery-heist-cops-twist-thriller" → robbery, heist, cops, thriller), sin las genéricas
+    const KW_STOP = new Set('and the for with intense powerful amusing moving gripping intriguing touching emotion emotional storytelling breathtaking thought provoking funny interesting entertaining fun great good beautiful stunning drama dramas film films story stories sad sweet humorous confusing'.split(' '));
+    const kwOf = path => path.startsWith('mini-theme/') ? path.slice(11).split('-').filter(w => w.length > 2 && !KW_STOP.has(w)) : [];
+    const KW_VALUE = 0.05, KW_MAX = 8; // cada subtemática compartida suma 0,05 al multiplicador (hasta 8)
+    const humanize = slug => { const x = slug.replace(/-/g, ' '); return x.charAt(0).toUpperCase() + x.slice(1); };
+    // Perfil de temáticas de tus pelis de partida: temática → pelis tuyas que la tienen; palabra clave → ídem
+    function baseProfile(ctx = R) {
+        const themes = new Map(), words = new Map();
+        const push = (m, k, slug) => { if (!m.has(k)) m.set(k, new Set()); m.get(k).add(slug); };
+        for (const [slug] of ctx.baseFilms) ((filmMeta[slug] || {}).themePaths || []).forEach(p => { push(themes, p, slug); kwOf(p).forEach(w => push(words, w, slug)); });
+        return { themes, words, size: themes.size };
+    }
+    // Qué comparte una candidata con ese perfil: temáticas exactas y palabras clave de sus mini-themes que no coincidieron exacto
+    function matchThemes(slug, prof) {
+        const paths = (filmMeta[slug] || {}).themePaths || [];
+        const exact = [], hit = new Set(), words = new Map();
+        paths.forEach(p => { if (prof.themes.has(p)) { exact.push([p, [...prof.themes.get(p)]]); hit.add(p); } });
+        paths.forEach(p => { if (!hit.has(p)) kwOf(p).forEach(w => { if (prof.words.has(w) && !words.has(w)) words.set(w, [...prof.words.get(w)]); }); });
+        return { exact, words: [...words] };
+    }
+    // Multiplica el score de cada candidata según lo que comparte con las pelis de partida (prof)
+    const withThemeBoost = (list, prof) => !prof || !prof.size ? list : list.map(e => {
+        const m = matchThemes(e.slug, prof);
+        const nW = Math.min(m.words.length, KW_MAX);
+        // multiplicador de las temáticas exactas + 0,05 por cada subtemática (ej. 2 temáticas ×1,4 + 4 subtemáticas = ×1,6)
+        const mult = themeMult(m.exact.length) + KW_VALUE * nW;
+        return m.exact.length || nW ? Object.assign({}, e, { themes: m.exact.length, words: nW, themeEff: mult, tmatch: m, score: e.score * mult }) : e;
+    });
     function getResults() {
         const minFans = minFansValue();
-        const base = [...computeCounts().values()]
-            .filter(e => e.fans >= minFans && !hidden.has(e.slug) && (ui.watchedCB.checked || !R.watched.has(e.slug)))
+        const counts = computeCounts();
+        if (ui.themesCB.checked) R.themeFilms.forEach((x, slug) => {
+            const c = counts.get(slug);
+            if (!c && (x.lists || 1) < THEME_SRC_MIN_LISTS) return; // solo en una lista: demasiado azar
+            const e = c || { slug, name: x.name, fans: 0, affine: 0, score: 0 };
+            e.score += THEME_SRC_WEIGHT * x.n; e.listed = x.lists || 1; counts.set(slug, e);
+        });
+        const base = withThemeBoost([...counts.values()]
+            .filter(e => (e.fans >= minFans || (e.fans === 0 && e.listed)) && !hidden.has(e.slug) && (ui.watchedCB.checked || !R.watched.has(e.slug))), ui.themesCB.checked ? baseProfile() : null)
             .sort((a, b) => b.score - a.score || b.fans - a.fans);
         gemsPending = []; gemsTotal = base.length;
         if (!ui.gemsCB.checked) return base;
@@ -672,7 +838,7 @@
         h('h2', { text: t('introTitle') }),
         h('p', { html: t('introLead') }),
         h('div.steps', {}, t('introSteps').map(([title, txt], i) => {
-            const col = ['var(--green)', 'var(--blue)', 'var(--orange)', 'var(--violet)'][i];
+            const col = ['var(--green)', 'var(--blue)', 'var(--orange)', '#f472b6', 'var(--violet)'][i];
             return h('div.step', { style: `border-top:2px solid ${col}` }, [h('small', { style: `color:${col}`, text: `${t('introStep')} ${i + 1}` }), h('b', { text: title }), h('span', { text: txt })]);
         })),
         h('div.intro-notes', { html: t('introNotes') }),
@@ -737,6 +903,9 @@
     ui.threads.addEventListener('change', () => localStorage.setItem('lbpr_speed', ui.threads.value));
     const noCacheOpt = mkOpt(t('noCache'), t('noCacheDesc'), false, null, true);
     ui.noCache = noCacheOpt.input;
+    const fivesOpt = mkOpt(t('optFives'), t('optFivesDesc'), loadJSON('lbpr_fives', true));
+    ui.fives = fivesOpt.input;
+    ui.fives.addEventListener('change', () => saveJSON('lbpr_fives', ui.fives.checked));
 
     ui.startBtn = h('button.btn.btn-primary', { text: t('start'), onclick: () => run() });
     // ── Estimación de cuánto va a tardar la búsqueda ──
@@ -807,8 +976,9 @@
         const perFilm = ui.fansAll.checked ? Infinity : Math.max(1, parseInt(ui.fans.value) || 50);
         const src = films.length ? 'manual' : source;
         const maxBase = Math.min(200, Math.max(1, parseInt(ui.maxBase.value) || 20));
-        return { slot: 'search', who, src, films, maxBase, perFilm, noCache: ui.noCache.checked,
-            key: JSON.stringify([src, who, films.map(f => f[0]), perFilm, maxBase]) };
+        const withFives = ui.fives.checked;
+        return { slot: 'search', who, src, films, maxBase, perFilm, noCache: ui.noCache.checked, withFives,
+            key: JSON.stringify([src, who, films.map(f => f[0]), perFilm, maxBase, withFives]) };
     }
 
 
@@ -845,6 +1015,7 @@
             h('div.fold-body', {}, [
                 h('div.field', {}, [h('label.label', { text: t('manualLabel') }), ui.manual, h('div.hint', { text: t('manualHint') })]),
                 h('div.field', {}, [h('label.label', { text: t('threadsLabel') }), ui.threads, h('div.hint', { text: t('threadsHint') })]),
+                fivesOpt.opt,
                 noCacheOpt.opt
             ])
         ]),
@@ -870,7 +1041,8 @@
     const PICK_MIN_FANS = 2;       // que la repitan al menos 2 personas
     const PICK_FANS = 100;         // personas por peli (fijo en esta pestaña)
     const PICK_FIRST_AFTER = 40;   // segundos: si la búsqueda no terminó, a los 40s se elige con lo que haya; el resto sigue para "Otra"
-    const availCache = loadJSON('lbpr_avail', {});
+    const availCache = loadJSON('lbpr_avail2', {}); // v2: ya filtrado por país
+    const AVAIL_COUNTRY = 'AR'; // Letterboxd marca cada servicio con su país (<span class="locale">AR</span>); solo se muestran los de acá
     const pickSkip = new Set(); // las que ya salieron o descartaste
     let pickKind = localStorage.getItem('lbpr_pick_kind') || 'any';
     let pickCurrent = null;
@@ -1062,26 +1234,36 @@
         if (!res.ok) return { ok: false, services: [] };
         const doc = await parseHTML(res);
         const services = [], seen = new Set();
+        let raw = 0; // cuántos servicios había antes de filtrar por país
         doc.querySelectorAll('[class*="service"]').forEach(el => {
             if (el.querySelector('[class*="service"]')) return; // solo los elementos "hoja", no el contenedor
             const nameEl = el.querySelector('.name, .title');
             const img = el.querySelector('img');
             const name = ((nameEl && nameEl.textContent) || (img && img.getAttribute('alt')) || '').replace(/\s+/g, ' ').trim();
             if (!name || name.length > 40 || seen.has(name.toLowerCase())) return;
-            seen.add(name.toLowerCase());
-            const txt = el.textContent.toLowerCase();
-            const stream = el.querySelector('[class*="stream"]') || /stream|play|suscrip|subscri/.test(txt) ? true
-                : /rent|buy|alquil|compr/.test(txt) ? false : null;
+            // país del servicio: "Amazon US" y "Google Play Movies AR" son listados distintos; sin marca se asume el del usuario
+            const loc = ((el.querySelector('.locale') || {}).textContent || '').trim().toUpperCase();
+            raw++;
+            if (loc && loc !== AVAIL_COUNTRY) return;
+            seen.add(name.toLowerCase()); // después del filtro: "Amazon US" no debe tapar a "Amazon AR"
+            // tipo de acceso según los links de opciones: -rent / -buy / disco = no es streaming; cualquier otro = suscripción
+            let hasRentBuy = false, hasOther = false;
+            el.querySelectorAll('.options a.link').forEach(a => {
+                if (/-rent|-buy/.test(a.className)) hasRentBuy = true;
+                else if (!/disc|dvd|blu/i.test(a.textContent)) hasOther = true;
+            });
+            const stream = hasOther ? true : hasRentBuy ? false
+                : el.querySelector('[class*="stream"]') ? true : /rent|buy|alquil|compr/i.test((el.querySelector('.options') || {}).textContent || '') ? false : null;
             services.push({ name, stream });
         });
-        const out = { ok: true, services, t: Date.now() };
-        availCache[slug] = out; saveJSON('lbpr_avail', availCache);
+        const out = { ok: true, services, raw, t: Date.now() };
+        availCache[slug] = out; saveJSON('lbpr_avail2', availCache);
         return out;
     }
 
     // Trae portada, promedio, calificaciones y duración de varias pelis, en paralelo
     async function ensureMeta(list, needRuntime) {
-        const todo = list.filter(e => !metaFresh(e.slug) || filmMeta[e.slug].failed || (needRuntime && filmMeta[e.slug].runtime === undefined));
+        const todo = list.filter(e => !metaFresh(e.slug) || filmMeta[e.slug].failed || filmMeta[e.slug].themePaths === undefined || (needRuntime && filmMeta[e.slug].runtime === undefined));
         let i = 0, done = 0;
         const worker = async id => {
             await sleep(id * 250);
@@ -1134,7 +1316,9 @@
                 .filter(e => e.fans >= PICK_MIN_FANS && !hidden.has(e.slug) && !P.watched.has(e.slug) && !pickSkip.has(e.slug))
                 .sort((a, b) => b.score - a.score)
                 .slice(0, pickKind === 'any' && !shortOpt.input.checked ? 40 : 80);
-            await ensureMeta(cands, shortOpt.input.checked);
+            // temáticas: hacen falta las de tus pelis y las de las candidatas; después se reordena con el multiplicador
+            await ensureMeta([...P.baseFilms.map(f => ({ slug: f[0] })), ...cands], shortOpt.input.checked);
+            cands = withThemeBoost(cands, baseProfile(P)).sort((a, b) => b.score - a.score);
             const m = e => filmMeta[e.slug] || {};
             if (shortOpt.input.checked) cands = cands.filter(e => m(e).runtime && m(e).runtime <= SHORT_MAX_MIN);
             let ranked;
@@ -1156,7 +1340,7 @@
                 pickStatus(t('pickChecking', name));
                 const av = await fetchAvailability(e.slug);
                 checked++;
-                if (av.ok && !av.services.length) emptyChecks++;
+                if (av.ok && !av.raw) emptyChecks++; // sin ningún servicio en el HTML (no cuenta el filtro por país)
                 // si ninguna de las primeras 8 muestra plataformas, seguramente no estamos pudiendo leer la página
                 if (streamFilter && checked >= 8 && emptyChecks === checked) { log(t('lgPickParse'), 'var(--yellow)'); streamFilter = false; }
                 // solo se descarta si se pudo leer la página y no está en streaming; si la consulta falló, no se sabe: se acepta
@@ -1191,9 +1375,7 @@
         const chips = h('div', { style: 'display:flex;flex-wrap:wrap;gap:6px' }, [
             fm.rating != null ? chip(t('rating', fm.rating.toFixed(2)), '#ff8000') : '',
             fm.runtime ? chip(t('pickRuntime', fm.runtime), '#a1a1aa') : '',
-            ...(fm.genres || []).slice(0, 3).map(g => chip(g, '#a1a1aa')),
-            chip(t('fansCommon', e.fans, e.affine), '#40bcf4'),
-            e.gem != null ? chip(t('gemScore', e.gem), '#a78bfa') : chip(t('score', e.score), '#00e054')
+            ...(fm.genres || []).slice(0, 3).map(g => chip(g, '#a1a1aa'))
         ]);
         // dónde verla
         const where = h('div', { style: 'display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;color:var(--muted)' }, h('b', { text: t('pickWhere') + ':', style: 'color:var(--txt2)' }));
@@ -1237,19 +1419,30 @@
     // se puede usar − / + o escribir el número a mano
     const minFansVal = h('input', { type: 'number', min: 1, value: 2, 'aria-label': t('optMinFans') });
     minFansVal.addEventListener('input', () => { const v = parseInt(minFansVal.value); if (v >= 1) setMinFans(v, true); });
+    // Mientras no lo toques, el mínimo es automático: MIN_FANS_PCT de las personas revisadas (mínimo 2). Ej.: 8.000 personas → 120
+    let minFansManual = false;
+    const MIN_FANS_PCT = 0.015;
+    const autoMinFans = () => Math.max(2, Math.round(MIN_FANS_PCT * R.fanFilms.size));
     minFansVal.addEventListener('blur', () => { minFansVal.value = minFansValue(); });
     const minFansDesc = h('span', { text: t('optMinFansDesc', 2) });
-    const setMinFans = (v, typing) => {
+    const setMinFans = (v, typing, auto) => {
         v = Math.max(1, v); ui.minFans.dataset.value = v;
+        if (!auto) minFansManual = true;
         if (!typing) minFansVal.value = v; // mientras escribís no se pisa lo que estás tipeando
-        minFansDesc.textContent = t('optMinFansDesc', v); renderResults();
+        minFansDesc.textContent = t('optMinFansDesc', v) + t('minFansAuto', autoMinFans());
+        if (!auto) renderResults();
     };
+    // ajusta el valor automático según cuánta gente tiene la búsqueda (no re-dibuja: lo llama renderResults)
+    const syncAutoMinFans = () => { if (!minFansManual) setMinFans(autoMinFans(), false, true); else minFansDesc.textContent = t('optMinFansDesc', minFansValue()) + t('minFansAuto', autoMinFans()); };
     ui.minFans.append(h('button', { text: '−', onclick: () => setMinFans(minFansValue() - 1) }), minFansVal, h('button', { text: '+', onclick: () => setMinFans(minFansValue() + 1) }));
     const minFansOpt = h('div.opt.on', { style: 'cursor:default' }, [h('div.opt-txt', {}, [h('b', { text: t('optMinFans') }), minFansDesc]), ui.minFans]);
 
     const gemsOpt = mkOpt(t('optGems'), t('optGemsDesc'), localStorage.getItem('lbmf_rec_gems') === '1');
     ui.gemsCB = gemsOpt.input;
     ui.gemsCB.addEventListener('change', () => localStorage.setItem('lbmf_rec_gems', ui.gemsCB.checked ? '1' : '0'));
+    const themesOpt = mkOpt(t('optThemes'), t('optThemesDesc'), localStorage.getItem('lbmf_rec_themes') !== '0');
+    ui.themesCB = themesOpt.input;
+    ui.themesCB.addEventListener('change', () => localStorage.setItem('lbmf_rec_themes', ui.themesCB.checked ? '1' : '0'));
     const watchedOpt = mkOpt(t('optWatched'), t('optWatchedDesc'), false);
     ui.watchedCB = watchedOpt.input;
     ui.affMin = h('input.input', { type: 'number', min: 2, max: 20, value: 2, style: 'width:60px' });
@@ -1271,17 +1464,20 @@
         logEl.scrollTop = logEl.scrollHeight;
     }
 
+    // Subpestañas de resultados: recomendadas por fans / llegadas solo por temática
+    let resTab = 'fans';
+    ui.resTabs = h('div.tabs', { style: 'margin:12px 0' }, ['fans', 'themes'].map(k => h('button', { 'data-k': k, onclick: () => { resTab = k; renderResults(); } })));
     const resultsCard = h('section.card', {}, [
         h('div.results-head', {}, [h('h2', { text: t('resultsTitle') }), h('div.row', {}, [histBtn, h('button.btn-sm', { text: t('export'), onclick: exportTxt })])]),
         histPanel,
         h('div.adjust', {}, [
             h('div.adjust-h', { html: `${esc(t('adjust'))}<span>· ${esc(t('adjustHint'))}</span>` }),
-            h('div.opts', {}, [minFansOpt, gemsOpt.opt, watchedOpt.opt, affOpt.opt])
+            h('div.opts', {}, [minFansOpt, gemsOpt.opt, themesOpt.opt, watchedOpt.opt, affOpt.opt])
         ]),
-        ui.count, ui.list, logFold
+        ui.resTabs, ui.count, ui.list, logFold
     ]);
     recTab.append(resultsCard);
-    [ui.gemsCB, ui.watchedCB, ui.affCB, ui.affMin, ui.affMode].forEach(el => el.addEventListener('change', renderResults));
+    [ui.gemsCB, ui.themesCB, ui.watchedCB, ui.affCB, ui.affMin, ui.affMode].forEach(el => el.addEventListener('change', renderResults));
 
     // ══════════════ Balde de pochoclos ══════════════
     const POP_PHASES = { base: [0, 5, 'popBase'], watched: [5, 12, 'popWatched'], fans: [12, 35, 'popFans'], favs: [35, 100, 'popFavs'] };
@@ -1343,7 +1539,7 @@
         if (!ctx.fanFilms.size) return;
         const id = String(Date.now());
         await store.set('hist:' + id, {
-            favs: ctx.baseFilms, fanFilms: [...ctx.fanFilms], fanWeight: [...ctx.fanShared],
+            favs: ctx.baseFilms, fanFilms: [...ctx.fanFilms], fanFives: [...ctx.fanFives], fanHalves: [...ctx.fanHalves], themeFilms: [...ctx.themeFilms], fanWeight: [...ctx.fanShared],
             fanBases: [...ctx.fanBases].map(([u, b]) => [u, [...b]]), watched: [...ctx.watched]
         });
         history = [{ id, t: Date.now(), source: src, who, partial, baseNames: ctx.baseFilms.map(f => f[1] || slugName(f[0])), fans: ctx.fanFilms.size, films: computeCounts(ctx, true).size }, ...history];
@@ -1359,8 +1555,9 @@
         const data = await store.get('hist:' + id);
         if (!data) { if (!quiet) alert(t('histMissing')); return; }
         R.baseFilms = data.favs; R.baseSlugs = new Set(R.baseFilms.map(f => f[0]));
-        R.fanFilms = new Map(data.fanFilms); R.fanShared = new Map(data.fanWeight); R.watched = new Set(data.watched);
+        R.fanFilms = new Map(data.fanFilms); R.fanFives = new Map(data.fanFives || []); R.fanHalves = new Map(data.fanHalves || []); R.themeFilms = new Map(data.themeFilms || []); R.fanShared = new Map(data.fanWeight); R.watched = new Set(data.watched);
         R.fanBases = new Map((data.fanBases || []).map(([u, b]) => [u, new Set(b)]));
+        minFansManual = false;
         expanded.clear();
         historyCurrent = id; localStorage.setItem('lbpr_last_hist', id);
         R.key = null;
@@ -1371,6 +1568,7 @@
 
     // ══════════════ "¿Por qué?": explicación gráfica ══════════════
     const WHY_COLORS = ['#00e054', '#40bcf4', '#ff8000', '#a78bfa', '#f43f5e', '#fbbf24', '#22d3ee', '#f472b6'];
+    const matchTitle = m => m ? [...m.exact.map(([p]) => humanize(p.split('/')[1])), ...m.words.map(([w]) => w)].join(' · ') : '';
     const baseName = slug => { const f = R.baseFilms.find(x => x[0] === slug); return (f && f[1]) || slugName(slug); };
     // De qué pelis base es fan cada persona (en búsquedas viejas no se guardaba: se deduce de su top 4)
     const basesOf = (u, films) => R.fanBases.get(u) || new Set(films.filter(([slug]) => R.baseSlugs.has(slug)).map(([slug]) => slug));
@@ -1379,10 +1577,12 @@
         const box = h('div', { style: 'margin-top:10px;padding:14px;background:rgba(24,24,27,.9);border:1px solid var(--line2);border-radius:10px;display:flex;flex-direction:column;gap:14px;' });
         const voters = [];
         R.fanFilms.forEach((films, u) => {
-            if (!films.some(([slug]) => slug === e.slug)) return;
+            const has = l => (l || []).some(([slug]) => slug === e.slug);
+            const k = has(films) ? 1 : has(R.fanFives.get(u)) ? FIVE_WEIGHT : has(R.fanHalves.get(u)) ? HALF_WEIGHT : 0;
+            if (!k) return;
             const shared = R.fanShared.get(u) || 1;
             const { w, affine } = fanWeightFor(shared);
-            if (w > 0) voters.push({ u, shared, w, affine, bases: basesOf(u, films) });
+            if (w > 0) voters.push({ u, shared, src: k === 1 ? 'top' : k === FIVE_WEIGHT ? 'five' : 'half', w: w * k, affine, bases: basesOf(u, films) });
         });
         voters.sort((a, b) => b.w - a.w || a.u.localeCompare(b.u));
         const filmName = e.name || slugName(e.slug);
@@ -1431,15 +1631,43 @@
             box.append(h('div', { style: 'padding:4px 0 14px', html: svg }));
         }
 
-        // 3) Desglose del score: grupos de fans según cuánto vale su voto
+        // 2b) Qué temáticas comparte con tus pelis
+        if (e.tmatch && (e.tmatch.exact.length || e.tmatch.words.length)) {
+            const kind = p => t('kind' + p.split('/')[0]);
+            const from = bases => bases.map(baseName).join(', ');
+            const lines = [
+                ...e.tmatch.exact.map(([p, bs]) => `<b>${esc(kind(p))}:</b> ${esc(humanize(p.split('/')[1]))} <span style="color:var(--faint)">← ${esc(from(bs))}</span>`),
+                ...e.tmatch.words.slice(0, KW_MAX).map(([w, bs]) => `<b>${esc(t('kindword'))}:</b> ${esc(w)} <span style="color:var(--faint)">← ${esc(from(bs))}</span>`)
+            ];
+            box.append(h('div', { style: 'font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px' }, [h('b', { text: t('whyMatchTitle'), style: 'color:var(--txt2)' }), h('div', { style: 'display:flex;flex-direction:column;gap:3px', html: lines.join('<br>') })]));
+        }
+
+        // 3) Desglose del score: una fila por grupo de personas (de dónde la sacan y cuántas de tus pelis comparten)
         const groups = new Map();
-        voters.forEach(v => { const g = groups.get(v.w) || { n: 0, affine: v.affine }; g.n++; groups.set(v.w, g); });
+        voters.forEach(v => {
+            const key = `${v.src}|${v.shared}|${v.affine}`;
+            const g = groups.get(key) || { n: 0, w: v.w, src: v.src, shared: v.shared, affine: v.affine };
+            g.n++; groups.set(key, g);
+        });
         const chip = (txt, col) => `<span style="padding:4px 9px;border-radius:6px;font-weight:600;background:${col}1a;color:${col};border:1px solid ${col}40">${txt}</span>`;
-        const parts = [...groups.entries()].sort((a, b) => b[0] - a[0])
-            .map(([w, g]) => chip(`${g.n} ${t('fanWord', g.n)} × ${w} ${t('voteWord', w)}${g.affine ? ' 🎯' : ''}`, g.affine ? '#a78bfa' : '#40bcf4'));
-        let scoreHtml = `<b style="color:var(--txt2)">${t('whyScore')}</b> ${parts.join('<span>+</span>')}<span>=</span>${chip(t('score', e.score), '#00e054')}`;
+        const num = x => +x.toFixed(2);
+        const rows = [...groups.values()].sort((a, b) => b.n * b.w - a.n * a.w).map(g => {
+            const label = t('whyRow' + g.src, g.n) + (g.shared > 1 ? ' ' + t('whyShared', g.n, g.shared) : '') + (g.affine ? ' 🎯' : '');
+            return [label, `${g.n} × ${num(g.w)} = ${num(g.n * g.w)}`, g.affine ? '#a78bfa' : '#40bcf4'];
+        });
+        const lst = ui.themesCB.checked ? R.themeFilms.get(e.slug) : null;
+        if (lst) rows.push([t('whyThemeLists', lst.lists || 1), `+${num(THEME_SRC_WEIGHT * lst.n)}`, '#f472b6']);
+        const rowsHtml = rows.map(([label, val, col]) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span>${esc(label)}</span>${chip(val, col)}</div>`).join('');
+        let scoreHtml = `<b style="color:var(--txt2)">${t('whyScore')}</b>`;
+        if (e.themeEff) {
+            // el multiplicador por temáticas: votos × (según las temáticas en común) = score final
+            const mult = e.themeEff;
+            scoreHtml += `${chip(num(e.score / mult), '#a1a1aa')}<span>×</span>${chip(t('whyThemes', num(mult), e.themes, e.words), '#f472b6')}<span>=</span>`;
+        }
+        scoreHtml += chip(t('score', +e.score.toFixed(1)), '#00e054');
         if (e.gem != null) scoreHtml += `<span>${esc(t('whyGem', fmtNum((filmMeta[e.slug] || {}).ratingCount || 0)))}</span>${chip(t('gemScore', e.gem), '#a78bfa')}`;
-        box.append(h('div', { style: 'display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;color:var(--muted)', html: scoreHtml }),
+        box.append(h('div', { style: 'display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted)', html: rowsHtml }),
+            h('div', { style: 'display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;color:var(--muted);border-top:1px solid var(--line2);padding-top:10px', html: scoreHtml }),
             h('div', { style: 'font-size:11px;color:var(--faint);margin-top:-8px', text: t(ui.affCB.checked ? 'whyHintAff' : 'whyHint') }));
 
         // 4) Los fans que la votaron
@@ -1457,7 +1685,15 @@
 
     // ══════════════ Render de resultados ══════════════
     function renderResults() {
-        const items = getResults();
+        syncAutoMinFans();
+        const all = getResults();
+        const nThemes = all.filter(e => !e.fans).length;
+        ui.resTabs.querySelectorAll('button').forEach(b => {
+            const k = b.dataset.k;
+            b.textContent = t(k === 'fans' ? 'resTabFans' : 'resTabThemes', k === 'fans' ? all.length - nThemes : nThemes);
+            b.classList.toggle('on', k === resTab);
+        });
+        const items = all.filter(e => resTab === 'themes' ? !e.fans : e.fans > 0);
         const gemsOn = ui.gemsCB.checked;
         ui.affInfo.textContent = R.fanShared.size ? affinitySummary() : t('affPending');
         ui.count.textContent = t('count', items.length);
@@ -1467,7 +1703,8 @@
             wantMeta([...items.slice(0, 40).map(e => e.slug), ...gemsPending.slice(0, isRunning ? 100 : Infinity).map(e => e.slug)]);
             ui.list.append(h('div.note', { text: t('gemsPending', gemsTotal - gemsPending.length, gemsTotal) }));
         }
-        if (!items.length) { ui.list.append(h('div.empty', { text: t(R.fanFilms.size ? 'emptyNone' : 'emptyStart') })); return; }
+        if (!items.length) { ui.list.append(h('div.empty', { text: t(resTab === 'themes' && R.fanFilms.size ? 'emptyThemes' : R.fanFilms.size ? 'emptyNone' : 'emptyStart') })); return; }
+        if (resTab === 'themes') ui.list.append(h('div.note', { text: t('themesTabHint') }));
         const shown = items.slice(0, 150);
         // portada y promedio: durante la búsqueda solo las primeras 40, al terminar todas las visibles
         if (!(gemsOn && gemsPending.length)) wantMeta(shown.slice(0, isRunning ? 40 : 150).map(e => e.slug));
@@ -1485,11 +1722,12 @@
 
             const chips = h('div', { style: 'display:flex;flex-wrap:wrap;gap:6px' });
             chips.append(chip(fm ? (fm.rating != null ? t('rating', fm.rating.toFixed(2)) : t('noRating')) : '★ …', '#ff8000', 'rgba(255,128,0,.1)', fm && fm.ratingCount ? t('votesTitle', fm.ratingCount.toLocaleString()) : null));
-            chips.append(chip(t('fansCommon', e.fans, e.affine), '#40bcf4', 'rgba(64,188,244,.1)'));
+            chips.append(e.fans ? chip(t('fansCommon', e.fans, e.affine), '#40bcf4', 'rgba(64,188,244,.1)') : chip(t('themeOnly'), '#f472b6', 'rgba(244,114,182,.1)', t('themeOnlyTitle')));
             if (gemsOn) {
-                chips.append(chip(t('gemScore', e.gem), '#a78bfa', 'rgba(167,139,250,.12)', t('rawScore', e.score)));
+                chips.append(chip(t('gemScore', e.gem), '#a78bfa', 'rgba(167,139,250,.12)', t('rawScore', +e.score.toFixed(1))));
                 if (fm && fm.ratingCount) chips.append(chip(t('votes', fmtNum(fm.ratingCount)), '#a1a1aa', 'rgba(161,161,170,.1)'));
-            } else chips.append(chip(t('score', e.score), '#00e054', 'rgba(0,224,84,.1)'));
+            } else chips.append(chip(t('score', +e.score.toFixed(1)), '#00e054', 'rgba(0,224,84,.1)'));
+            if (e.themeEff) chips.append(chip(t('themeMatch', e.themes, e.words), '#f472b6', 'rgba(244,114,182,.1)', matchTitle(e.tmatch)));
             if (R.watched.has(e.slug)) chips.append(chip(t('seen'), '#a1a1aa', 'rgba(161,161,170,.1)'));
 
             const title = (e.name || slugName(e.slug)) + (fm && fm.year && !/\(\d{4}\)$/.test(e.name || '') ? ` (${fm.year})` : '');
@@ -1498,14 +1736,14 @@
                 chips,
                 h('div', { style: 'height:3px;background:#27272a;border-radius:2px' }, h('div', { style: `height:100%;width:${(scoreOf(e) / maxScore) * 100}%;background:linear-gradient(90deg,#40bcf4,#00e054);border-radius:2px` }))
             ]);
-            const why = h('button', {
+            const why = !e.fans ? '' : h('button', {
                 text: open ? t('whyClose') : t('why'),
                 style: `padding:4px 9px;background:${open ? 'rgba(251,191,36,.15)' : '#27272a'};color:${open ? '#fbbf24' : '#e4e4e7'};border:1px solid ${open ? 'rgba(251,191,36,.4)' : '#3f3f46'};border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;flex-shrink:0;align-self:flex-start;white-space:nowrap`,
                 onclick: () => { open ? expanded.delete(e.slug) : expanded.add(e.slug); renderResults(); }
             });
             const hide = h('button.btn-ghost', { text: '✕', title: t('hide'), style: 'align-self:flex-start', onclick: () => { hidden.add(e.slug); saveJSON('lbmf_rec_hidden', [...hidden]); renderResults(); } });
             const rank = h('span', { text: i + 1, style: `width:24px;text-align:right;font-size:${i < 3 ? 15 : 12}px;font-weight:${i < 3 ? 800 : 500};color:${i < 3 ? '#00e054' : '#52525b'};font-variant-numeric:tabular-nums;flex-shrink:0` });
-            const row = h('div', { style: 'display:flex;align-items:center;gap:12px' }, [rank, poster, info, why, hide]);
+            const row = h('div', { style: 'display:flex;align-items:center;gap:12px' }, [rank, poster, info, why, hide].filter(Boolean));
             ui.list.append(h('div', {
                 style: `padding:8px 10px;background:rgba(9,9,11,.6);border:1px solid ${open ? '#fbbf2466' : '#27272a'};border-radius:10px`
             }, open ? [row, buildWhy(e)] : row));
@@ -1551,8 +1789,8 @@
         const ctx = opts.slot === 'pick' ? P : R; // cada pestaña llena su propio contexto
         ctx.key = null;
         let ok = false;
-        ctx.fanFilms = new Map(); ctx.fanShared = new Map(); ctx.fanBases = new Map();
-        if (ctx === R) { expanded.clear(); historyCurrent = null; renderHistory(); renderResults(); }
+        ctx.fanFilms = new Map(); ctx.fanShared = new Map(); ctx.fanBases = new Map(); ctx.fanFives = new Map(); ctx.fanHalves = new Map(); ctx.themeFilms = new Map();
+        if (ctx === R) { minFansManual = false; expanded.clear(); historyCurrent = null; renderHistory(); renderResults(); }
         const noCache = !!opts.noCache;
         if (noCache) log(t('lgNoCache'), 'var(--yellow)');
         let src = opts.src;
@@ -1659,9 +1897,11 @@
                 await sleep(id * 400);
                 while (next < fans.length && !stopReq) {
                     const u = fans[next++];
-                    const fr = await fetchUserFavorites(u, noCache);
+                    const fr = await fetchUserFavorites(u, noCache, !!opts.withFives);
                     if (fr) {
                         ctx.fanFilms.set(u, fr.films);
+                        if (fr.fives.length) ctx.fanFives.set(u, fr.fives);
+                        if (fr.halves.length) ctx.fanHalves.set(u, fr.halves);
                         // pelis en común reales: las que tiene en su top 4 (pudo aparecer en menos listas de fans
                         // de las que corresponde, porque de cada peli solo se toma una parte de sus fans)
                         const bs = ctx.fanBases.get(u) || new Set();
@@ -1687,6 +1927,7 @@
                 const rate = fetchedN / ((Date.now() - favsStart) / 1000) / threads();
                 localStorage.setItem('lbpr_rate', String(Math.min(2, Math.max(0.1, measuredRate() * 0.6 + rate * 0.4)).toFixed(3)));
             }
+            if (ctx === R && !stopReq) { phase = 'themes'; status(t('stThemes')); try { await gatherThemeFilms(ctx); } catch (e) { console.error(e); } }
             log(t('lgDone', done, failed, computeCounts(ctx, true).size), 'var(--green)');
             log(`🎯 ${affinitySummary(ctx)}`, 'var(--blue)');
             status(stopReq ? t('stPartial') : t('stDone', ctx === R ? getResults().length : computeCounts(ctx, true).size));
@@ -1710,7 +1951,7 @@
     }
 
     // ══════════════ Inicio ══════════════
-    setIntro(localStorage.getItem('lbmf_intro_seen') !== '1');
+    setIntro(false); // cerrado al abrir; se despliega con "¿Cómo funciona?"
     showTab(localStorage.getItem('lbpr_tab') || 'rec');
     renderResults();
     store.get('history').then(hs => {

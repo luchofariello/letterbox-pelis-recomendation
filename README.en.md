@@ -25,12 +25,15 @@ Once the search is done, you can **tune the results instantly**, with no new req
 
 | Setting | What it does |
 |---|---|
-| 👥 Recommended by at least… | Only shows films shared by at least N people with your taste. |
+| 👥 Recommended by at least… | Only shows films shared by at least N people with your taste. Starts with a **suggested value** (1.5% of the people checked) shown when the results load; you can change it by hand. |
+| 🧩 Boost similar themes | Multiplies the score of films that share **themes** (Letterboxd's *Genres* section) with yours, and adds films reached only by theme (see below). |
 | 💎 Prioritize hidden gems | *Fewer obvious classics, more discoveries*: downweights films everyone loves and boosts the ones your "taste twins" love but almost nobody else does. |
 | 👁 Include films I've seen | Also shows films you've already logged on Letterboxd. |
 | 🎯 More weight to your taste twins | If someone shares 2 or more of your films, their vote counts more (x5), or only they are counted. |
 
-Every film has a **💡 Why?** button that opens a diagram showing where the recommendation comes from: which of your films connect to it, how many people voted for it and how the score is calculated.
+Results are split into two tabs: **👥 By fans** and **🧩 Theme only** (films no fan has among their favorites, but that share themes with yours).
+
+Every film has a **💡 Why?** button that opens a diagram showing where the recommendation comes from: which of your films connect to it, how many people voted for it, **which themes and subthemes it shares with your films** (by name, and which of your films they come from) and the full score calculation, row by row.
 
 ![Why?](docs/screenshots/why.png)
 
@@ -41,9 +44,9 @@ Also:
 - The UI is available in **Spanish and English**.
 
 ### 📺 Pick a film now
-For when you don't want to think: pick a few films you love with the search box, choose **what you want** (🎲 Surprise me · 💎 A hidden gem · 🏛 A classic) and get **a single film**, with where to watch it.
+For when you don't want to think: pick a few films you love with the search box, choose **what you want** (🎲 Surprise me · 💎 A hidden gem · 🏛 A classic) and get **a single film**, with where to watch it. It uses the same algorithm (fans + theme multiplier).
 
-- **📺 Available to stream**: only films available in your country, based on Letterboxd's "Where to watch".
+- **📺 Available to stream**: only films available in **Argentina**, based on Letterboxd's "Where to watch" (services from other countries are ignored). Change the country with `AVAIL_COUNTRY` in `app.js`.
 - **⏱ Something short**: up to an hour and a half.
 - Shows the first recommendation **within 40 seconds** and keeps processing in the background so **🎲 Another** gets even better.
 - **◀ Previous** to go back to one you skipped and **🚫 Don't show it again** to discard it forever.
@@ -59,14 +62,30 @@ For when you don't want to think: pick a few films you love with the search box,
 ```mermaid
 flowchart LR
     A["⭐ Your films<br/>(favorites, top rated<br/>or picked by hand)"] --> B["🕵️ Their fans<br/>people who have them<br/>in their top 4"]
-    B --> C["🎞️ Each fan's<br/>top 4"]
-    C --> D["🏆 Ranking<br/>the most repeated ones<br/>you haven't seen"]
+    B --> C["🎞️ What they love<br/>top 4 + their 5★ and 4½★"]
+    A --> T["🧩 Themes<br/>of your films"]
+    T --> U["🧩 The best films<br/>of each theme"]
+    C --> D["🏆 Ranking"]
+    U --> D
+    T -. "multiplies" .-> D
 ```
 
 1. **Your starting films**: read from your Letterboxd profile (or picked with the search box).
-2. **Their fans**: on Letterboxd, a *fan* of a film is someone who has it in their top 4 favorites. For each of your films, a number of fans is taken (50 by default).
-3. **Each fan's top 4**: every one of those profiles is read.
-4. **The ranking**: each person adds **1 vote per film of yours in their top 4**, so people who share more films with you count more. Your starting films and the ones you've seen are excluded.
+2. **Their fans**: on Letterboxd, a *fan* of a film is someone who has it in their top 4 favorites. For each of your films, a number of fans is taken (50 by default). Letterboxd only lets you see the first 256 pages of fans of each film (about 6,400 people), even if it has more.
+3. **What each fan loves**, with different weights:
+   - their **top 4** is worth **1 vote** per film;
+   - up to 15 of their **5★** films are worth **0.5** and up to 15 of their **4½★** films are worth **0.25** (optional, ⭐ in *More options*; slower: two extra requests per person).
+4. **Each person's weight**: multiplied by **how many of your films they share**. With 🎯 *taste twins*, someone sharing 2 or more counts more (x5), or only they are counted.
+5. **Themes** (each film's *Genres* section on Letterboxd): the themes of your starting films are collected and each candidate's score is **multiplied** by how many it shares with yours.
+
+   | Shared themes | Multiplier |
+   |---|---|
+   | 1 · 2 · 3 · 4 | ×1.2 · ×1.4 · ×1.6 · ×1.8 |
+   | 5 · 6 · 7… | ×2.2 · ×2.6 · ×3.0… (+0.4 per theme) |
+
+   **Subthemes** (words shared between *mini-themes*, like `heist` or `cops`) add **+0.05** each to the multiplier (up to 8). Example: 2 themes (×1.4) + 4 subthemes = **×1.6**.
+6. **Theme-only films**: the 15 most repeated themes among your films are taken, and the **50 top rated films of each**. Each list is weighted by how repeated its theme is, and only films appearing in **2 or more lists** get in. They're worth little (0.5 × list weight), so they're shown separately in the **🧩 Theme only** tab.
+7. **The ranking**: the votes of all people are added up, the multipliers are applied, and your starting films and the ones you've seen are excluded.
 
 **💎 Hidden gems**: the score is divided by the square root of the film's popularity (number of ratings on Letterboxd, plus a 5,000 cushion so a film with very few ratings doesn't win by chance).
 
@@ -110,16 +129,16 @@ Everything runs **in your browser**. The extension has no server, no accounts an
 
 | Permission | Why |
 |---|---|
-| `https://letterboxd.com/*` | Read public Letterboxd pages (profiles, each film's fans, film data, where to watch). |
+| `https://letterboxd.com/*` | Read public Letterboxd pages (profiles, each film's fans, film data and themes, where to watch). |
 | `storage`, `unlimitedStorage` | Store the cache and history in your browser (with thousands of people the regular limit isn't enough). |
 
 What's stored in your browser (and for how long):
 
 | Data | Duration |
 |---|---|
-| Top 4 of each person checked | 30 days |
-| Each film's data (poster, average, ratings, runtime) | 14 days |
-| Each film's fan lists | 7 days |
+| Top 4 of each person checked (and their 5★ / 4½★, if enabled) | 30 days |
+| Each film's data (poster, average, ratings, runtime, themes) | 14 days |
+| Each film's fan lists and top-rated-by-theme lists | 7 days |
 | Where each film can be watched | 3 days |
 | Your watched films | 12 hours |
 | Search history | last 10 |
@@ -132,7 +151,8 @@ To delete everything: `chrome://extensions` → remove the extension.
 
 - This is **not an official extension** and it isn't affiliated with Letterboxd. Letterboxd has no public API, so the extension reads the HTML of its public pages: **if Letterboxd changes its site, something may stop working** until the extension is updated.
 - To avoid overloading Letterboxd, requests are spaced out. If Letterboxd asks to slow down (error 429), the extension pauses everything for 60 seconds and retries. Please use it moderately and respect Letterboxd's terms of use.
-- **Streaming** data is what Letterboxd shows for your country (it comes from JustWatch). If it can't be read, the film is still shown with a link to check it on Letterboxd.
+- **Streaming** data is what Letterboxd shows for **Argentina** (it comes from JustWatch). If it can't be read, the film is still shown with a link to check it on Letterboxd.
+- **Theme-only** films come from lists that Letterboxd loads separately (`/csi/…`). If it blocks them, the Log shows an HTTP error and the search continues without those films.
 - The **Log** (at the bottom of the Recommendations tab) shows everything it's doing, useful if something fails.
 
 ---
